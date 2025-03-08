@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/ecg_app.dir/src/main.cpp.o CMakeFiles/ecg_app.dir/src/ecg_processor.cpp.o  -o ecg_app 
