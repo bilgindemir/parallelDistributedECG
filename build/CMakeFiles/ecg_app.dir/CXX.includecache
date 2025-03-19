@@ -6,24 +6,6 @@
 
 #IncludeRegexTransform: 
 
-/workspaces/parallelDistributedECG/src/ecg_processor.cpp
-ecg_processor.h
-/workspaces/parallelDistributedECG/src/ecg_processor.h
-fstream
--
-sstream
--
-iostream
--
-stdexcept
--
-numeric
--
-cmath
--
-set
--
-
 /workspaces/parallelDistributedECG/src/ecg_processor.h
 vector
 -
@@ -34,6 +16,12 @@ string
 iostream
 -
 vector
+-
+string
+-
+experimental/filesystem
+-
+omp.h
 -
 ecg_processor.h
 /workspaces/parallelDistributedECG/src/ecg_processor.h
