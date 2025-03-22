@@ -3,6 +3,7 @@
 #include <string>
 #include <experimental/filesystem>
 #include <omp.h>
+#include <chrono>
 #include "ecg_processor.h"
 
 namespace fs = std::experimental::filesystem;
@@ -19,61 +20,65 @@ int main() {
         }
     }
 
-    // Process files in parallel using OpenMP
-    #pragma omp parallel for schedule(dynamic)
-    for (int i = 0; i < files.size(); ++i) {
-        std::string filename = files[i].string();
-        std::cout << "\nProcessing file: " << filename << std::endl;
+    if(files.empty()){
+        std::cerr << "No CSV files found in " << directoryPath << std::endl;
+        return 1;
+    }
+
+    // Define the thread counts to test
+    std::vector<int> threadCounts = {1, 4, 8, 16};
+
+    // Loop over each thread count to measure performance
+    for (int numThreads : threadCounts) {
+        // Set the number of threads for OpenMP
+        omp_set_num_threads(numThreads);
+        std::cout << "\n=== Processing with " << numThreads << " threads ===\n";
+
+        // Start overall timer for this run
+        auto overallStart = std::chrono::high_resolution_clock::now();
         
-        auto startTime = std::chrono::high_resolution_clock::now();
-        std::vector<double> ecgData;
-        try {
-            // Load MLII data from column index 2.
-            ecgData = loadECGData(filename, 2);
-        } catch (std::exception& ex) {
+        // Process files in parallel using OpenMP
+        #pragma omp parallel for schedule(dynamic)
+        for (int i = 0; i < files.size(); ++i) {
+            std::string filename = files[i].string();
             #pragma omp critical
-            {
-                std::cerr << "Error loading " << filename << ": " << ex.what() << std::endl;
+            std::cout << "Processing file: " << filename << std::endl;
+            
+            std::vector<double> ecgData;
+            try {
+                // Load MLII data from column index 2.
+                ecgData = loadECGData(filename, 2);
+            } catch (std::exception& ex) {
+                #pragma omp critical
+                {
+                    std::cerr << "Error loading " << filename << ": " << ex.what() << std::endl;
+                }
+                continue;
             }
-            continue;
+            
+            // Process the ECG data sequentially for this file:
+            double rawAverage = processECGData(ecgData);
+            int windowSize = 10;
+            std::vector<double> filteredData = filterECGData(ecgData, windowSize);
+            int windowSizeLow = 20;
+            int windowSizeHigh = 5;
+            std::vector<double> bandpassedData = bandpassFilter(ecgData, windowSizeLow, windowSizeHigh);
+            int dynamicWindowSize = 100;
+            double multiplier = 2.0;
+            int refractoryPeriod = 200;
+            std::vector<int> dynamicPeakIndices = detectPeaksDynamic(bandpassedData, dynamicWindowSize, multiplier, refractoryPeriod);
+            
+            // Optionally export results if needed
+            std::string stem = files[i].stem().string();
+            std::string outputCSV = directoryPath + stem + "_results.csv";
+            exportPeakDetectionResults(ecgData, dynamicPeakIndices, outputCSV);
         }
         
-        #pragma omp critical
-        std::cout << "Loaded " << ecgData.size() << " data points." << std::endl;
-        
-        double rawAverage = processECGData(ecgData);
-        #pragma omp critical
-        std::cout << "Average raw ECG signal value: " << rawAverage << std::endl;
-        
-        int windowSize = 10;
-        std::vector<double> filteredData = filterECGData(ecgData, windowSize);
-        #pragma omp critical
-        std::cout << "Applied moving average filter with window size " << windowSize << "." << std::endl;
-        
-        int windowSizeLow = 20;
-        int windowSizeHigh = 5;
-        std::vector<double> bandpassedData = bandpassFilter(ecgData, windowSizeLow, windowSizeHigh);
-        #pragma omp critical
-        std::cout << "Applied naive bandpass filter with window sizes " << windowSizeLow 
-                  << " (low-pass) and " << windowSizeHigh << " (high-pass)." << std::endl;
-        
-        int dynamicWindowSize = 100;
-        double multiplier = 2.0;
-        int refractoryPeriod = 200;
-        std::vector<int> dynamicPeakIndices = detectPeaksDynamic(bandpassedData, dynamicWindowSize, multiplier, refractoryPeriod);
-        #pragma omp critical
-        std::cout << "Detected " << dynamicPeakIndices.size() 
-                  << " peaks in the bandpassed ECG data using dynamic thresholding." << std::endl;
-        
-        // Construct output filename
-        std::string stem = files[i].stem().string();
-        std::string outputCSV = directoryPath + stem + "_results.csv";
-        exportPeakDetectionResults(ecgData, dynamicPeakIndices, outputCSV);
-        
-        auto endTime = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-        #pragma omp critical
-        std::cout << "Processing time for " << stem << ": " << duration.count() << " ms" << std::endl;
+        // End overall timer for this thread count run
+        auto overallEnd = std::chrono::high_resolution_clock::now();
+        auto overallDuration = std::chrono::duration_cast<std::chrono::milliseconds>(overallEnd - overallStart);
+        std::cout << "Total processing time with " << numThreads << " threads: " 
+                  << overallDuration.count() << " ms" << std::endl;
     }
     
     return 0;

@@ -94,6 +94,8 @@ ecg_app_EXTERNAL_OBJECTS =
 ecg_app: CMakeFiles/ecg_app.dir/src/main.cpp.o
 ecg_app: CMakeFiles/ecg_app.dir/src/ecg_processor.cpp.o
 ecg_app: CMakeFiles/ecg_app.dir/build.make
+ecg_app: /usr/lib/gcc/x86_64-linux-gnu/9/libgomp.so
+ecg_app: /usr/lib/x86_64-linux-gnu/libpthread.so
 ecg_app: CMakeFiles/ecg_app.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/workspaces/parallelDistributedECG/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable ecg_app"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/ecg_app.dir/link.txt --verbose=$(VERBOSE)
