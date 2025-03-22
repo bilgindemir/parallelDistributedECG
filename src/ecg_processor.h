@@ -27,11 +27,4 @@ std::vector<int> detectPeaksDynamic(const std::vector<double>& data, int windowS
 // The CSV file will contain: index, ecg_value, is_peak (1 if a peak was detected, else 0).
 void exportPeakDetectionResults(const std::vector<double>& data, const std::vector<int>& peakIndices, const std::string& outputFile);
 
-// If you have ground truth peak annotations, load them from a CSV file (one integer per line).
-std::vector<int> loadGroundTruthPeaks(const std::string& filename);
-
-// Validates the detected peaks against ground truth within a given tolerance (in samples)
-// and prints out basic performance metrics.
-void validatePeaks(const std::vector<int>& detectedPeaks, const std::vector<int>& groundTruth, int tolerance);
-
 #endif // ECG_PROCESSOR_H

@@ -26,7 +26,7 @@ int main() {
     }
 
     // Define the thread counts to test
-    std::vector<int> threadCounts = {1, 4, 8, 16};
+    std::vector<int> threadCounts = {1, 4};
 
     // Loop over each thread count to measure performance
     for (int numThreads : threadCounts) {

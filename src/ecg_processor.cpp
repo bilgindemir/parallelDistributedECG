@@ -115,6 +115,7 @@ std::vector<int> detectPeaksDynamic(const std::vector<double>& data, int windowS
         double threshold = localMean + multiplier * localStd;
         
         if (data[i] > threshold && data[i] > data[i-1] && data[i] > data[i+1]) {
+            // Enforce a refractory period to avoid multiple detections of the same peak.
             if (!peakIndices.empty() && (i - peakIndices.back()) < refractoryPeriod) {
                 continue;
             }
@@ -147,20 +148,4 @@ void exportPeakDetectionResults(const std::vector<double>& data, const std::vect
     }
     out.close();
     std::cout << "Exported peak detection results to " << outputFile << std::endl;
-}
-
-// ----------------- Load Ground Truth Peaks -----------------
-std::vector<int> loadGroundTruthPeaks(const std::string& filename) {
-    std::vector<int> groundTruth;
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        std::cerr << "Error: Unable to open ground truth file: " << filename << std::endl;
-        return groundTruth;
-    }
-    int index;
-    while (file >> index) {
-        groundTruth.push_back(index);
-    }
-    file.close();
-    return groundTruth;
 }
