@@ -25,8 +25,8 @@ int main() {
         return 1;
     }
 
-    // Define the thread counts to test
-    std::vector<int> threadCounts = {1, 4};
+    // Define the threads {1, 2, 3, 4} counts to test
+    std::vector<int> threadCounts = {4};
 
     // Loop over each thread count to measure performance
     for (int numThreads : threadCounts) {
@@ -46,8 +46,8 @@ int main() {
             
             std::vector<double> ecgData;
             try {
-                // Load MLII data from column index 2.
-                ecgData = loadECGData(filename, 2);
+                // Load MLII data from column index 1.
+                ecgData = loadECGData(filename, 1);
             } catch (std::exception& ex) {
                 #pragma omp critical
                 {

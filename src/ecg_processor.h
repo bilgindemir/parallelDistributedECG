@@ -5,8 +5,8 @@
 #include <string>
 
 // Loads ECG data from a CSV file, skipping the header and extracting a specified column.
-// Default is column index 2 (for MLII).
-std::vector<double> loadECGData(const std::string& filename, int columnIndex = 2);
+// Default is column index 1 (for MLII).
+std::vector<double> loadECGData(const std::string& filename, int columnIndex = 1);
 
 // Computes the average value of the provided ECG data.
 double processECGData(const std::vector<double>& data);
