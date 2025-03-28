@@ -20,13 +20,13 @@ int main() {
         }
     }
 
-    if(files.empty()){
+    if (files.empty()) {
         std::cerr << "No CSV files found in " << directoryPath << std::endl;
         return 1;
     }
 
-    // Define the threads {1, 2, 3, 4} counts to test
-    std::vector<int> threadCounts = {4};
+    // Define the threads counts to test (e.g., {1, 2, 3, 4})
+    std::vector<int> threadCounts = {1, 2, 3, 4, 5, 6, 7, 8, 16, 32};
 
     // Loop over each thread count to measure performance
     for (int numThreads : threadCounts) {
@@ -36,26 +36,24 @@ int main() {
 
         // Start overall timer for this run
         auto overallStart = std::chrono::high_resolution_clock::now();
-        
+
         // Process files in parallel using OpenMP
         #pragma omp parallel for schedule(dynamic)
         for (int i = 0; i < files.size(); ++i) {
             std::string filename = files[i].string();
-            #pragma omp critical
+            // Print the file being processed (messages may interleave)
             std::cout << "Processing file: " << filename << std::endl;
-            
+
             std::vector<double> ecgData;
             try {
                 // Load MLII data from column index 1.
                 ecgData = loadECGData(filename, 1);
             } catch (std::exception& ex) {
-                #pragma omp critical
-                {
-                    std::cerr << "Error loading " << filename << ": " << ex.what() << std::endl;
-                }
+                // Print errors without synchronization
+                std::cerr << "Error loading " << filename << ": " << ex.what() << std::endl;
                 continue;
             }
-            
+
             // Process the ECG data sequentially for this file:
             double rawAverage = processECGData(ecgData);
             int windowSize = 10;
@@ -67,19 +65,19 @@ int main() {
             double multiplier = 2.0;
             int refractoryPeriod = 200;
             std::vector<int> dynamicPeakIndices = detectPeaksDynamic(bandpassedData, dynamicWindowSize, multiplier, refractoryPeriod);
-            
+
             // Optionally export results if needed
             std::string stem = files[i].stem().string();
             std::string outputCSV = directoryPath + stem + "_results.csv";
             exportPeakDetectionResults(ecgData, dynamicPeakIndices, outputCSV);
         }
-        
+
         // End overall timer for this thread count run
         auto overallEnd = std::chrono::high_resolution_clock::now();
         auto overallDuration = std::chrono::duration_cast<std::chrono::milliseconds>(overallEnd - overallStart);
-        std::cout << "Total processing time with " << numThreads << " threads: " 
+        std::cout << "Total processing time with " << numThreads << " threads: "
                   << overallDuration.count() << " ms" << std::endl;
     }
-    
+
     return 0;
 }

@@ -49,6 +49,7 @@
         "codecvt": "cpp",
         "ctime": "cpp",
         "set": "cpp",
-        "ratio": "cpp"
+        "ratio": "cpp",
+        "iomanip": "cpp"
     }
 }
